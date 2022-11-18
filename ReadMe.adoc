@@ -6,10 +6,15 @@
 
 = Project: {Project}
 
-Describe your project
+Start machine for water races. Simply pull and release the rope.
 
 == Step 1: Installation
-Please describe the steps to install this project.
+
+Read `git log` to see how the code is generated.
+
+Create new blank project.
+Add two variables `relay_up` and `relay_down`.
+Attach new device with name `nodeMCU` and save `DEVICE_ID` and `SECRET_KEY`.
 
 For example:
 
