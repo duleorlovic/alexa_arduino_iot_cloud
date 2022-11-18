@@ -14,31 +14,22 @@ Read `git log` to see how the code is generated.
 
 Create new blank project.
 Add two variables `relay_up` and `relay_down`.
-Attach new device with name `nodeMCU` and save `DEVICE_ID` and `SECRET_KEY`.
-
-For example:
-
-1. Open this file
-2. Edit as you like
-3. Release to the World!
+Attach new device with name *nodeMCU* and save DEVICE_ID (used as
+`DEVICE_LOGIN_NAME`) and *SECRET_KEY* (used as `SECRET_DEVICE_KEY`).
+Add secrets for network and device by
+```
+cp arduino_secrets.h.template arduino_secrets.h
+vi arduino_secrets.h
+# update SECRET_SSID=trk, SECRET_OPTIONAL_PASS=wifipass and SECRET_DEVICE_KEY=123
+```
 
 == Step 2: Assemble the circuit
 
-Assemble the circuit following the diagram layout.png attached to the sketch
+Assemble the circuit following the diagram ./wiring_relays_schematic.jpeg
 
 == Step 3: Load the code
 
 Upload the code contained in this sketch on to your board
-
-=== Folder structure
-
-....
- sketch123                => Arduino sketch folder
-  ├── sketch123.ino       => main Arduino file
-  ├── schematics.png      => (optional) an image of the required schematics
-  ├── layout.png          => (optional) an image of the layout
-  └── ReadMe.adoc         => this file
-....
 
 === License
 This project is released under a {License} License.
