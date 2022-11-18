@@ -3,10 +3,16 @@
 #include <ArduinoIoTCloud.h>
 #include <Arduino_ConnectionHandler.h>
 
+void onRelayDownChange();
+void onRelayUpChange();
 
+bool relay_down;
+bool relay_up;
 
 void initProperties(){
 
+  ArduinoCloud.addProperty(relay_down, READWRITE, ON_CHANGE, onRelayDownChange);
+  ArduinoCloud.addProperty(relay_up, READWRITE, ON_CHANGE, onRelayUpChange);
 
 }
 

@@ -6,8 +6,8 @@
 
   The following variables are automatically generated and updated when changes are made to the Thing
 
-  - No variables have been created, add cloud variables on the Thing Setup page
-    to see them declared here
+  bool relay_down;
+  bool relay_up;
 
   Variables which are marked as READ/WRITE in the Cloud Thing will also have functions
   which are called when their values are changed from the Dashboard.
@@ -44,4 +44,21 @@ void loop() {
   // Your code here 
   
   
+}
+
+
+/*
+  Since RelayUp is READ_WRITE variable, onRelayUpChange() is
+  executed every time a new value is received from IoT Cloud.
+*/
+void onRelayUpChange()  {
+  // Add your code here to act upon RelayUp change
+}
+
+/*
+  Since RelayDown is READ_WRITE variable, onRelayDownChange() is
+  executed every time a new value is received from IoT Cloud.
+*/
+void onRelayDownChange()  {
+  // Add your code here to act upon RelayDown change
 }
