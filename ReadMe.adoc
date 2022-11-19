@@ -23,6 +23,29 @@ vi arduino_secrets.h
 # update SECRET_SSID=trk, SECRET_OPTIONAL_PASS=wifipass and SECRET_DEVICE_KEY=123
 ```
 
+Build using arduino-cli and a helper function
+```
+arduino-cli-upload() {
+  if [ "$1" == "-h" ] || [ "$1" == "" ]; then
+    cat <<-HERE_DOC
+    Hi, you can use me to compile, upload and open serial port
+        arduino-cli-upload fqbn port
+        arduino-cli-upload esp8266:esp8266:generic /dev/cu.usbserial-13320
+	HERE_DOC
+    return
+  fi
+  fqbn=${1}
+  port=${2}
+  arduino-cli compile --fqbn $fqbn || return 1
+  arduino-cli upload --fqbn $fqbn -p $port || return 1
+  arduino-cli monitor -p $port
+}
+```
+Sample command:
+```
+arduino-cli-upload esp8266:esp8266:generic /dev/cu.usbserial-13320
+```
+
 == Step 2: Assemble the circuit
 
 Assemble the circuit following the diagram ./wiring_relays_schematic.jpeg

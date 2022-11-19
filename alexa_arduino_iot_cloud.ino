@@ -16,13 +16,23 @@
 */
 
 #include "thingProperties.h"
+#include <Espalexa.h>
+
+#define ON_ACTIVE_LOW 0
+#define OFF_ACTIVE_LOW 1
+
+#define RELAY_UP_PIN 16 // D0
+#define RELAY_DOWN_PIN 5 // D1
+
+Espalexa espalexa;
+bool alexaDeviceAdded = false;
 
 void setup() {
   // Initialize serial and wait for port to open:
   Serial.begin(9600);
   // This delay gives the chance to wait for a Serial Monitor without blocking if none is found
   delay(1500); 
-
+  Serial.println("setup start");
   // Defined in thingProperties.h
   initProperties();
 
@@ -38,28 +48,93 @@ void setup() {
  */
   setDebugMessageLevel(2);
   ArduinoCloud.printDebugInfo();
+
+  // wifi connection event callbacks
+  ArduinoIoTPreferredConnection.addCallback(NetworkConnectionEvent::CONNECTED, onNetworkConnect);
+  ArduinoIoTPreferredConnection.addCallback(NetworkConnectionEvent::DISCONNECTED, onNetworkDisconnect);
+  ArduinoIoTPreferredConnection.addCallback(NetworkConnectionEvent::ERROR, onNetworkError);
+
+  // pins
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(RELAY_UP_PIN, OUTPUT);
+  pinMode(RELAY_DOWN_PIN, OUTPUT);
+  digitalWrite(RELAY_UP_PIN, OFF_ACTIVE_LOW);
+  digitalWrite(RELAY_DOWN_PIN, OFF_ACTIVE_LOW);
+  digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
+
+  Serial.println("Setup done");
 }
 
 void loop() {
   ArduinoCloud.update();
-  // Your code here 
-  
-  
+  espalexa.loop();
 }
 
 
-/*
-  Since RelayUp is READ_WRITE variable, onRelayUpChange() is
-  executed every time a new value is received from IoT Cloud.
-*/
 void onRelayUpChange()  {
-  // Add your code here to act upon RelayUp change
+  digitalWrite(RELAY_UP_PIN, !relay_up);  // relays is active on low
+  blink(relay_up);
+  Serial.print("onRelayUpChange relay_up=");
+  Serial.println(relay_up);
 }
 
-/*
-  Since RelayDown is READ_WRITE variable, onRelayDownChange() is
-  executed every time a new value is received from IoT Cloud.
-*/
 void onRelayDownChange()  {
-  // Add your code here to act upon RelayDown change
+  digitalWrite(RELAY_DOWN_PIN, !relay_down);
+  blink(relay_down);
+  Serial.print("onRelayDownChange relay_down=");
+  Serial.println(relay_down);
+}
+
+void firstLightChanged(uint8_t brightness) {
+  Serial.print("Device 1 changed to ");
+
+  if (brightness) {
+    digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
+    Serial.print("ON, brightness ");
+    Serial.println(brightness);
+    digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);
+  }
+  else  {
+    digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
+    Serial.println("OFF");
+    delay(300);
+    digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);
+  }
+}
+
+// https://github.com/arduino-libraries/Arduino_ConnectionHandler
+void onNetworkConnect() {
+  digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);
+  Serial.print(">>>> CONNECTED to network. ");
+  if (!alexaDeviceAdded) {
+    Serial.println("espalexa.addDevice Light 1");
+    espalexa.addDevice("Light 1", firstLightChanged);
+    espalexa.begin();
+  } else {
+    Serial.println("Keep using old device");
+  }
+}
+
+void onNetworkDisconnect() {
+  digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
+
+  Serial.println(">>>> DISCONNECTED from network");
+}
+
+void onNetworkError() {
+  digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
+
+  Serial.println(">>>> ERROR");
+}
+
+void blink(boolean two_times) {
+  digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
+  delay(100);
+  digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);    // turn the LED back to on
+  if (two_times) {
+    delay(100);
+    digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
+    delay(100);
+    digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);
+  }
 }
