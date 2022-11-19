@@ -27,6 +27,17 @@
 Espalexa espalexa;
 bool alexaDeviceAdded = false;
 
+unsigned long currentMillis = 0;    // stores the value of millis() in each iteration of loop()
+
+bool relayDownActive = false;
+unsigned long previousRelayDownActivatedMillis = 0; // last time the relay_down was activated
+bool relayUpActive = false;
+unsigned long previousRelayUpActivatedMillis = 0; // last time the relay_up was activated
+
+#define BLINK_DURATION 100
+int blinkActiveTimes = 0;
+unsigned long previousBlinkActivedMillis = 0;
+
 void setup() {
   // Initialize serial and wait for port to open:
   Serial.begin(9600);
@@ -66,39 +77,120 @@ void setup() {
 }
 
 void loop() {
+  currentMillis = millis();   // capture the latest value of millis()
   ArduinoCloud.update();
   espalexa.loop();
+  checkRelayDown();
+  checkRelayUp();
+  checkBlink();
 }
 
+void checkRelayDown() {
+  if (relayDownActive) {
+    if (currentMillis > previousRelayDownActivatedMillis &&
+        currentMillis - previousRelayDownActivatedMillis >= duration_seconds * 1000) {
+      relay_down = false;
+      digitalWrite(RELAY_DOWN_PIN, OFF_ACTIVE_LOW);
+      relayDownActive = false;
+      Serial.println("checkRelayDown.relay_down = false");
+    }
+  }
+}
+
+void checkRelayUp() {
+  if (relayUpActive) {
+    if (currentMillis > previousRelayUpActivatedMillis &&
+        currentMillis - previousRelayUpActivatedMillis >= duration_seconds * 1000) {
+      relay_up = false;
+      digitalWrite(RELAY_UP_PIN, OFF_ACTIVE_LOW);
+      relayUpActive = false;
+      Serial.println("checkRelayUp.relay_up = false");
+    }
+  }
+}
+
+// to start blink use
+// previousBlinkActivedMillis = millis()
+// blinkActiveTimes = 2;
+// blinkActiveTimes = 4;
+void checkBlink() {
+  if (blinkActiveTimes) {
+    if (currentMillis > previousBlinkActivedMillis &&
+        currentMillis - previousBlinkActivedMillis >= BLINK_DURATION) {
+      blinkActiveTimes -= 1;
+      digitalWrite(LED_BUILTIN, blinkActiveTimes % 2);
+      Serial.print(".");
+      previousRelayDownActivatedMillis = currentMillis;
+    }
+  }
+}
+
+void performRelayDown() {
+  Serial.print("performRelayDown.relay_down for ");
+  Serial.print(duration_seconds);
+  Serial.println(" seconds");
+  relay_down = true;
+  digitalWrite(RELAY_DOWN_PIN, ON_ACTIVE_LOW);
+  relayDownActive = true;
+  previousRelayDownActivatedMillis = millis();
+  // we will shut down in checkRelayDown
+}
+
+void performRelayUp() {
+  Serial.print("performRelayUp.relay_up for ");
+  Serial.print(duration_seconds);
+  Serial.println(" seconds");
+  relay_up = true;
+  digitalWrite(RELAY_UP_PIN, ON_ACTIVE_LOW);
+  relayUpActive = true;
+  previousRelayUpActivatedMillis = millis();
+  // we will shut down in checkRelayUp
+}
 
 void onRelayUpChange()  {
   digitalWrite(RELAY_UP_PIN, !relay_up);  // relays is active on low
-  blink(relay_up);
+  blinkActiveTimes = relay_up ? 4 : 2;
   Serial.print("onRelayUpChange relay_up=");
   Serial.println(relay_up);
 }
 
 void onRelayDownChange()  {
   digitalWrite(RELAY_DOWN_PIN, !relay_down);
-  blink(relay_down);
+  blinkActiveTimes = relay_up ? 4 : 2;
   Serial.print("onRelayDownChange relay_down=");
   Serial.println(relay_down);
 }
 
-void firstLightChanged(uint8_t brightness) {
-  Serial.print("Device 1 changed to ");
+void onStartRelayDownChange()  {
+  if (startRelayDown) {
+    Serial.print("startRelayDown=true ");
+    performRelayDown();
+  }
+}
+
+void onStartRelayUpChange()  {
+  if (startRelayUp) {
+    Serial.print("startRelayUp=true ");
+    performRelayUp();
+  }
+}
+
+void onDurationSecondsChange()  {
+}
+
+void firstDeviceChanged(uint8_t brightness) {
+  Serial.print("firstDeviceChanged changed to ");
 
   if (brightness) {
-    digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
+    blinkActiveTimes = 2;
     Serial.print("ON, brightness ");
     Serial.println(brightness);
-    digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);
+    performRelayDown();
   }
   else  {
-    digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
+    blinkActiveTimes = 4;
     Serial.println("OFF");
-    delay(300);
-    digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);
+    performRelayUp();
   }
 }
 
@@ -107,8 +199,9 @@ void onNetworkConnect() {
   digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);
   Serial.print(">>>> CONNECTED to network. ");
   if (!alexaDeviceAdded) {
+    alexaDeviceAdded = true;
     Serial.println("espalexa.addDevice Light 1");
-    espalexa.addDevice("Light 1", firstLightChanged);
+    espalexa.addDevice("Light 1", firstDeviceChanged);
     espalexa.begin();
   } else {
     Serial.println("Keep using old device");
@@ -127,14 +220,36 @@ void onNetworkError() {
   Serial.println(">>>> ERROR");
 }
 
-void blink(boolean two_times) {
-  digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
-  delay(100);
-  digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);    // turn the LED back to on
-  if (two_times) {
-    delay(100);
-    digitalWrite(LED_BUILTIN, OFF_ACTIVE_LOW);
-    delay(100);
-    digitalWrite(LED_BUILTIN, ON_ACTIVE_LOW);
+// https://gist.github.com/ctkjose/09aaed811802ab083f0771a007ac9fcd
+// serial_printi("Hello %s\n", "Jose");
+// serial_printi("Hello X=%d F=%f\n", 25, 340.36);
+void serial_printi(const char *format, ...){
+  char ch;
+  bool flgInterpolate = false;
+  va_list args;
+  va_start( args, format );
+  for( ; *format ; ++format ){
+    ch = *format;
+    if(flgInterpolate){
+      flgInterpolate = false;
+      if((ch=='d') || (ch=='c')){
+        Serial.print(va_arg(args, int));
+      }else if(ch=='s'){
+        Serial.print(va_arg(args, char*));
+      }else if(ch=='o'){
+        Serial.print(va_arg(args, unsigned int));
+      }else if((ch=='f') || (ch=='e') || (ch=='a') || (ch=='g')){
+        Serial.print(va_arg(args, double));
+      }else{
+        Serial.print('%');
+        Serial.print(ch);
+      }
+    }else if(ch=='%'){
+      flgInterpolate = true;
+    }else{
+      Serial.print(ch);
+    }
   }
+
+  va_end( args );
 }

@@ -46,6 +46,14 @@ Sample command:
 arduino-cli-upload esp8266:esp8266:generic /dev/cu.usbserial-13320
 ```
 
+Light name should contain *light* word, but you can rename inside alexa app to
+for example "Machine".
+
+When there is a network connection problems, device need some tome to reconnect.
+
+Create routing in alexa app: "Alexa, go", Machine ON, Wait 10 seconds, Machine
+Off.
+
 == Step 2: Assemble the circuit
 
 Assemble the circuit following the diagram ./wiring_relays_schematic.jpeg
