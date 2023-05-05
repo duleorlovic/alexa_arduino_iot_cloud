@@ -15,17 +15,33 @@
   These functions are generated with the Thing and added at the end of this sketch.
 */
 
+// #define USE_ALEXA
+
 #include "thingProperties.h"
+#ifdef USE_ALEXA
 #include <Espalexa.h>
+#endif
 
 #define ON_ACTIVE_LOW 0
 #define OFF_ACTIVE_LOW 1
 
+// vitlo  bravex megaflint Winch 12V WCH2000TL-BX
+// based on image search:
+// https://www.amazon.com/Bravex-Electric-Reversible-Portable-Power-out/dp/B07B8CMJVJ
+// https://www.amazon.com/Megaflint-Reversible-Power-Out-Freewheel-Operations/dp/B078Y3CPKZ
+// https://atlanticproducts.com.au/electric-boat-trailer-winch/
+// https://www.whitworths.com.au/bada-electric-trailer-winch-2000-wireless-remote-control
+// https://www.amazon.com/Portable-Reversible-Power-out-Freewheel-Operations/dp/B094F4VVT9
+// https://www.alibaba.com/product-detail/WILLEST-5000-lbs-12v-Electric-Winch_60707914073.html
+// USA https://www.harborfreight.com/2000-lb-marine-electric-winch-61237.html
+
 #define RELAY_UP_PIN 16 // D0
 #define RELAY_DOWN_PIN 5 // D1
 
+#ifdef USE_ALEXA
 Espalexa espalexa;
 bool alexaDeviceAdded = false;
+#endif
 
 unsigned long currentMillis = 0;    // stores the value of millis() in each iteration of loop()
 
@@ -79,7 +95,9 @@ void setup() {
 void loop() {
   currentMillis = millis();   // capture the latest value of millis()
   ArduinoCloud.update();
+#ifdef USE_ALEXA
   espalexa.loop();
+#endif
   checkRelayDown();
   checkRelayUp();
   checkBlink();
