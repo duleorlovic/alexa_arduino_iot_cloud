@@ -10,13 +10,18 @@ Start machine for water races. Simply pull and release the rope.
 
 == Step 1: Installation
 
-Read `git log` to see how the code is generated.
+Read `git log` to see how the code was developmet, but main instructions are
+here:
 
-Create new blank project.
-Add two variables `relay_up` and `relay_down`.
-Attach new device with name *nodeMCU* and save DEVICE_ID (used as
-`DEVICE_LOGIN_NAME`) and *SECRET_KEY* (used as `SECRET_DEVICE_KEY`).
-Add secrets for network and device by
+* create a new Think with device ESP8266 (type can be Generic ESP8266) and save
+the *DEVICE_ID* (used as `DEVICE_LOGIN_NAME`) and *SECRET_KEY* (used as
+`SECRET_DEVICE_KEY`). If you lost SECRET_DEVICE_KEY you have to create new
+device
+* create variables: `relay_up` and `relay_down`.
+* add secrets for network and device
+
+Download the code locally so you can use git to track changes. Secrets should be
+in .gitignore
 ```
 cp arduino_secrets.h.template arduino_secrets.h
 vi arduino_secrets.h
@@ -38,6 +43,7 @@ arduino-cli-upload() {
   port=${2}
   arduino-cli compile --fqbn $fqbn || return 1
   arduino-cli upload --fqbn $fqbn -p $port || return 1
+  sleep 2
   arduino-cli monitor -p $port
 }
 ```
@@ -45,6 +51,8 @@ Sample command:
 ```
 arduino-cli-upload esp8266:esp8266:generic /dev/cu.usbserial-13320
 ```
+
+## Alexa
 
 Light name should contain *light* word, but you can rename inside alexa app to
 for example "Machine".
@@ -77,6 +85,17 @@ Add the bill of the materials you need for this project.
 | L1 | Red LED        | 2345-asdf   | 5        
 | A1 | Arduino Zero   | ABX00066    | 1        
 |===
+
+
+Vitlo cekrk bravex megaflint Winch 12V WCH2000TL-BX
+based on image search:
+https://www.amazon.com/Bravex-Electric-Reversible-Portable-Power-out/dp/B07B8CMJVJ
+https://www.amazon.com/Megaflint-Reversible-Power-Out-Freewheel-Operations/dp/B078Y3CPKZ
+https://atlanticproducts.com.au/electric-boat-trailer-winch/
+https://www.whitworths.com.au/bada-electric-trailer-winch-2000-wireless-remote-control
+https://www.amazon.com/Portable-Reversible-Power-out-Freewheel-Operations/dp/B094F4VVT9
+https://www.alibaba.com/product-detail/WILLEST-5000-lbs-12v-Electric-Winch_60707914073.html
+USA https://www.harborfreight.com/2000-lb-marine-electric-winch-61237.html
 
 
 === Help
