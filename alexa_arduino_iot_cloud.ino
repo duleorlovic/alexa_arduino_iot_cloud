@@ -36,16 +36,16 @@
 
 // https://lastminuteengineers.com/esp8266-pinout-reference/
 // do not use D0, D3, D4
-#define RELAY_UP_PIN 5 // D1
-#define RELAY_DOWN_PIN 4 // D2
-#define RELAY_WEDGE_HOLDER_PIN 14 // D5
-#define RELAY_DOWN_CONFIRMATION_PIN 12 // D6
+#define RELAY_UP_PIN 14 // D5
+#define RELAY_DOWN_PIN 12 // D6
+#define RELAY_WEDGE_HOLDER_PIN 5 // D1
+// unused relay  4 // D2
 
 // 5V is on RSV reserved pin VV
 
-#define BLINK_DURATION 100
-#define WEDGE_HOLDER_UP_DURATION 300
-#define WEDGE_HOLDER_DOWN_INERTION_DURATION 2000
+#define BLINK_DURATION 50
+#define WEDGE_HOLDER_UP_DURATION 100
+#define WEDGE_HOLDER_DOWN_INERTION_DURATION 5000
 
 #ifdef USE_ALEXA
 Espalexa espalexa;
